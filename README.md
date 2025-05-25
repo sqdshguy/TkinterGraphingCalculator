@@ -1,10 +1,11 @@
 # 📊 Modern Graphing Calculator (Python)
 
 > **TL;DR**
-> • Real‑time desktop plotting of mathematical functions (Python)
-> • Caching & pixel‑aware decimation keep it smooth up to 144 Hz
-> • Solo project, \~3 k LOC with 95 % type‑hint coverage
-> • Old version published in a 2023 academic journal; adopted by 50 + students for coursework
+>
+> - **Real-time desktop plotting** of mathematical functions (Python)
+> - **Caching & pixel-aware decimation** keep it smooth up to 144 Hz
+> - **Solo project**, ~3 k LOC with **95% type-hint coverage**
+> - **Old version published** in a 2023 academic journal; adopted by **50+ students** for coursework
 
 [![Quick Demo](screenshots/new.gif)](screenshots/new.gif)
 
@@ -67,7 +68,7 @@ A cross‑platform GUI that turns raw mathematical expressions into high‑perfo
 
 ## 🎓 Academic Origin
 
-Originally built for the research paper **“Converting number systems using a graphical interface”** (Scientific Bulletin of the Podillya Scientific Lyceum, 2023). The first prototype (old.py) proved the concept; this repository contains a full production‑quality rewrite.
+Originally built for the research paper **“Converting number systems using a graphical interface”** (Scientific Bulletin of the Podillya Scientific Lyceum, 2023). The first prototype (old.py) proved the concept; this repository contains a full production‑quality rewrite.
 
 ---
 
