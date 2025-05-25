@@ -1,183 +1,191 @@
-from tkinter import *
-from tkinter import messagebox
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from numpy import *
+"""
+Tkinter Graphing Calculator
 
-class App:
-    def __init__(self):
-        self.window = Tk()
-        self.window.title("Grapher")
-        self.window.resizable(False, False)
-        
-        self.font = ("Verdana", 10)
-        self.plot_button_font = ("Verdana", 16, "bold")
-        
-        self.colors = ['red', 'blue', 'green', 'black', 'yellow', 'grey']
-        self.color = StringVar()
-        self.x_min = DoubleVar(value=-50)
-        self.y_min = DoubleVar(value=-50)
-        self.x_max = DoubleVar(value=50)
-        self.y_max = DoubleVar(value=50)
-        self.function = StringVar()
-        
-        self.plot_frame = self.create_frame()
-        self.canvas = self.create_canvas()
-        self.create_buttons()
-        
+A modern GUI application for plotting mathematical functions using matplotlib and tkinter.
+Provides interactive controls for zooming, panning, and customizing the plot appearance.
+Features a contemporary dark theme with smooth animations and modern styling.
+"""
+
+import tkinter as tk
+from tkinter import ttk
+import numpy as np
+import sympy as sp
+from typing import Optional, Callable, Tuple
+import constants as c
+import ui_components
+import plot_manager
+import view_manager
+
+
+class GraphingCalculator:
+    def __init__(self) -> None:
+        """Initialize the graphing calculator application."""
+        self.window = tk.Tk()
+        self._setup_window()
+        self._initialize_variables()
+        self._initialize_performance_cache()
+        self._create_ui_components()
+
+    def _setup_window(self) -> None:
+        """Configure the main window properties with modern styling."""
+        self.window.title(c.WINDOW_TITLE)
+        self.window.configure(bg=c.PRIMARY_BG)
+        self.window.resizable(True, True)
+        self.window.minsize(700, 550)
+
+        # Center window on screen
+        self.window.update_idletasks()
+        width = 1000
+        height = 750
+        x = (self.window.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.window.winfo_screenheight() // 2) - (height // 2)
+        self.window.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Configure modern ttk styles
+        self._configure_modern_styles()
+
+    def _configure_modern_styles(self) -> None:
+        """Configure modern ttk styles for widgets."""
+        style = ttk.Style()
+
+        # Configure modern entry style
+        style.theme_use("clam")
+        style.configure(
+            "Modern.TEntry",
+            fieldbackground=c.SECONDARY_BG,
+            background=c.SECONDARY_BG,
+            foreground=c.PRIMARY_TEXT,
+            bordercolor=c.BORDER_COLOR,
+            lightcolor=c.BORDER_COLOR,
+            darkcolor=c.BORDER_COLOR,
+            insertcolor=c.ACCENT_BLUE,
+            selectbackground=c.ACCENT_BLUE,
+            selectforeground=c.PRIMARY_TEXT,
+        )
+
+        # Configure modern combobox style
+        style.configure(
+            "Modern.TCombobox",
+            fieldbackground=c.SECONDARY_BG,
+            background=c.SECONDARY_BG,
+            foreground=c.PRIMARY_TEXT,
+            bordercolor=c.BORDER_COLOR,
+            arrowcolor=c.PRIMARY_TEXT,
+            selectbackground=c.ACCENT_BLUE,
+            selectforeground=c.PRIMARY_TEXT,
+        )
+
+        # Configure modern button style
+        style.configure(
+            "Modern.TButton",
+            background=c.BUTTON_SECONDARY,
+            foreground=c.PRIMARY_TEXT,
+            bordercolor=c.BORDER_COLOR,
+            lightcolor=c.BORDER_COLOR,
+            darkcolor=c.BORDER_COLOR,
+            focuscolor="none",
+        )
+
+        style.map(
+            "Modern.TButton",
+            background=[
+                ("active", c.BUTTON_SECONDARY_HOVER),
+                ("pressed", c.ACCENT_BLUE),
+            ],
+        )
+
+        # Configure primary button style
+        style.configure(
+            "Primary.TButton",
+            background=c.BUTTON_PRIMARY,
+            foreground=c.PRIMARY_TEXT,
+            bordercolor=c.BUTTON_PRIMARY,
+            lightcolor=c.BUTTON_PRIMARY,
+            darkcolor=c.BUTTON_PRIMARY,
+            focuscolor="none",
+        )
+
+        style.map(
+            "Primary.TButton",
+            background=[("active", c.BUTTON_PRIMARY_HOVER), ("pressed", c.ACCENT_BLUE)],
+        )
+
+    def _initialize_variables(self) -> None:
+        """Initialize all tkinter variables used in the application."""
+        self.color = tk.StringVar()
+        self.x_min = tk.DoubleVar(value=c.DEFAULT_MIN_VALUE)
+        self.y_min = tk.DoubleVar(value=c.DEFAULT_MIN_VALUE)
+        self.x_max = tk.DoubleVar(value=c.DEFAULT_MAX_VALUE)
+        self.y_max = tk.DoubleVar(value=c.DEFAULT_MAX_VALUE)
+        self.function = tk.StringVar()
+
+    def _initialize_performance_cache(self) -> None:
+        """Initialize performance optimization variables."""
+        # Function caching
+        self.cached_function_str: Optional[str] = None
+        self.cached_parsed_expr: Optional[sp.Expr] = None
+        self.cached_lambdified_func: Optional[Callable] = None
+
+        # Data caching for smooth pan/zoom
+        self.cached_x_values: Optional[np.ndarray] = None
+        self.cached_y_values: Optional[np.ndarray] = None
+        self.cached_x_range: Optional[Tuple[float, float]] = None
+
+        # Idle-based redraw scheduling
+        self.pending_redraw_id: Optional[str] = None
+
+        # Plot elements for efficient updates
+        self.plot_line = None
+        self.axes = None
+
+    def _create_ui_components(self) -> None:
+        """Create and arrange all modern UI components."""
+        ui_components.create_main_layout(self)
+        ui_components.create_header(self)
+        ui_components.create_plot_area(self)
+        ui_components.create_modern_control_panel(self)
+
+    def _reset_view(self) -> None:
+        view_manager.reset_view(self)
+
+    def _clear_plot(self) -> None:
+        view_manager.clear_plot(self)
+
+    def _clear_data_cache(self) -> None:
+        """Clear the cached plot data."""
+        plot_manager.clear_data_cache(self)
+
+    def plot(self) -> None:
+        plot_manager.plot(self)
+
+    def move_up(self) -> None:
+        view_manager.move_up(self)
+
+    def move_down(self) -> None:
+        view_manager.move_down(self)
+
+    def move_left(self) -> None:
+        view_manager.move_left(self)
+
+    def move_right(self) -> None:
+        view_manager.move_right(self)
+
+    def zoom_in(self) -> None:
+        view_manager.zoom_in(self)
+
+    def zoom_out(self) -> None:
+        view_manager.zoom_out(self)
+
+    def run(self) -> None:
+        """Start the main application loop."""
         self.window.mainloop()
-        
-    def create_frame(self):
-        frame = Frame(self.window, width=700, height=700, bg="#20221f")
-        frame.pack_propagate(False)
-        frame.pack(fill="y", expand=True, side="left")
-        return frame
-    
-    def create_canvas(self):
-        figure = Figure(figsize=(5, 5), dpi=100)
-        ax = figure.add_subplot(111)
-        ax.plot([], [])
-        
-        canvas = FigureCanvasTkAgg(figure, self.plot_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(side="bottom", fill="both", expand=True)
-        canvas._tkcanvas.pack(side="top", fill="both", expand=True)
-        
-        return canvas
-    
-    def create_buttons(self):
-        functions_frame = Frame(self.plot_frame, width=700, height=163, bg="#20221f")
-        functions_frame.pack_propagate(False)
-        functions_frame.pack(fill="x", expand=True, side="top")
-        
-        first_row = Frame(functions_frame, width=670, height=40, bg="#20221f")
-        first_row.pack_propagate(False)
-        first_row.pack(expand=True, side="top")
-        
-        second_row = Frame(functions_frame, width=670, height=40, bg="#20221f")
-        second_row.pack_propagate(False)
-        second_row.pack(expand=True)
-        
-        third_row = Frame(functions_frame, width=120, height=80, bg="#20221f")
-        third_row.pack_propagate(False)
-        third_row.pack(expand=True, side="bottom")
-        
-        button_plot = Button(third_row, font=self.plot_button_font, text="PLOT", width=10, height=2, bg="#20221f",
-                                fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                command=self.plot)
-        button_plot.grid(row=0, column=0, padx=0, pady=0, columnspan=1, sticky="EWNS")
-        
-        labels = [
-            (first_row, "X min:", self.x_min),
-            (first_row, "Y min:", self.y_min),
-            (second_row, "X max:", self.x_max),
-            (second_row, "Y max:", self.y_max)
-        ]
-        
-        for frame, text, var in labels:
-            label = Label(frame, font=self.font, text=text, width=6, height=2, bg="#20221f", fg="white",
-                             activeforeground="white")
-            label.pack(side="left", padx=3)
-            
-            entry = Entry(frame, width=6, textvariable=var)
-            entry.pack(side="left", padx=3)
-        
-        Label(first_row, font=self.font, text="Function: y=", width=10, height=2, bg="#20221f", fg="white",
-                 activeforeground="white").pack(side="left", padx=3)
-        
-        function_entry = Entry(first_row, textvariable=self.function)
-        function_entry.pack(side="left", padx=3)
-    
-        spinbox = Spinbox(first_row, values=self.colors, textvariable=self.color)
-        spinbox.config(state="readonly", background="#20221f", foreground="#20221f")
-        spinbox.pack(side="left", padx=3)
 
-        move_up_button = Button(second_row, text="↑", width=3, height=1, bg="#20221f",
-                                   fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                   command=self.move_up)
-        move_up_button.pack(side="left", padx=3)
 
-        move_down_button = Button(second_row, text="↓", width=3, height=1, bg="#20221f",
-                                     fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                     command=self.move_down)
-        move_down_button.pack(side="left", padx=3)
+def main() -> None:
+    """Main entry point for the application."""
+    app = GraphingCalculator()
+    app.run()
 
-        move_left_button = Button(second_row, text="←", width=3, height=1, bg="#20221f",
-                                     fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                     command=self.move_left)
-        move_left_button.pack(side="left", padx=3)
 
-        move_right_button = Button(second_row, text="→", width=3, height=1, bg="#20221f",
-                                      fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                      command=self.move_right)
-        move_right_button.pack(side="left", padx=3)
-
-        zoom_in_button = Button(second_row, font=self.font, text="+", width=3, height=1, bg="#20221f",
-                                   fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                   command=self.zoom_in)
-        zoom_in_button.pack(side="left", padx=3)
-
-        zoom_out_button = Button(second_row, font=self.font, text="-", width=3, height=1, bg="#20221f",
-                                    fg="white", relief="raised", activebackground="#383737", activeforeground="white",
-                                    command=self.zoom_out)
-        zoom_out_button.pack(side="left", padx=3)
-        
-        copyright_label = Label(self.plot_frame, text="© Oleksandr Herasymov", font=("Verdana", 8), bg="#20221f", fg="white")
-        copyright_label.pack(side="bottom", pady=5)
-
-    def plot(self):
-        color = self.color.get()
-        func = self.function.get()
-        
-        try:
-            x = arange(int(self.x_min.get()), int(self.x_max.get()) + 1, 0.1)
-            y = eval(func)
-        except:
-            messagebox.showerror('Error', 'An error occured while plotting\nPlease the check the limits and the function')
-        
-        self.canvas.figure.clear()
-        ax = self.canvas.figure.add_subplot(111)
-        ax.set_xlim([self.x_min.get(), self.x_max.get()])
-        ax.set_ylim([self.y_min.get(), self.y_max.get()])
-        ax.axhline(color='black', lw=0.5)
-        ax.axvline(color='black', lw=0.5)
-        ax.plot(x, y, color=color)
-        self.canvas.draw()
-
-    def move_up(self):
-        self.y_min.set(self.y_min.get() + 10)
-        self.y_max.set(self.y_max.get() + 10)
-        self.plot()
-
-    def move_down(self):
-        self.y_min.set(self.y_min.get() - 10)
-        self.y_max.set(self.y_max.get() - 10)
-        self.plot()
-
-    def move_left(self):
-        self.x_min.set(self.x_min.get() - 10)
-        self.x_max.set(self.x_max.get() - 10)
-        self.plot()
-
-    def move_right(self):
-        self.x_min.set(self.x_min.get() + 10)
-        self.x_max.set(self.x_max.get() + 10)
-        self.plot()
-
-    def zoom_in(self):
-        if self.x_max.get() > 10:
-            self.x_min.set(self.x_min.get() + 10)
-            self.x_max.set(self.x_max.get() - 10)
-            self.y_min.set(self.y_min.get() + 10)
-            self.y_max.set(self.y_max.get() - 10)
-        self.plot()
-
-    def zoom_out(self):
-        self.x_min.set(self.x_min.get() - 10)
-        self.x_max.set(self.x_max.get() + 10)
-        self.y_min.set(self.y_min.get() - 10)
-        self.y_max.set(self.y_max.get() + 10)
-        self.plot()
-
-if __name__ == '__main__':
-    app = App()
+if __name__ == "__main__":
+    main()
