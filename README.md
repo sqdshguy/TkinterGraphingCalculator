@@ -7,7 +7,9 @@
 > - **Solo project**, ~3 k LOC with **95% type-hint coverage**
 > - **Old version published** in a 2023 academic journal; adopted by **50+ students** for coursework
 
-[![Quick Demo](screenshots/new.gif)](screenshots/new.gif)
+| Modern Version                 | Original Prototype          |
+| ------------------------------ | --------------------------- |
+| ![Modern](screenshots/new.png) | ![Old](screenshots/old.png) |
 
 A cross‑platform GUI that turns raw mathematical expressions into high‑performance, interactive plots. Built from the ground up in Python with Tkinter, Matplotlib, and SymPy, it shows how thoughtful architecture and modern UI principles can push a classic toolkit far beyond "hello world" widgets.
 
@@ -87,14 +89,6 @@ python main.py
 ```
 
 > **Tip:** `pip install pyinstaller` then run `pyinstaller main.py` to produce a standalone executable.
-
----
-
-## 📸 Screenshots
-
-| Modern Version                 | Original Prototype          |
-| ------------------------------ | --------------------------- |
-| ![Modern](screenshots/new.png) | ![Old](screenshots/old.png) |
 
 ---
 
